@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>IE AUDIT MK</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+<body>
+
+<div class="header">
+
+<h1>IE AUDIT MK</h1>
+
+<select id="lineSelect">
+</select>
+
+<div class="ie-owner">
+
+IE :
+<span id="ieOwner">
+-
+</span>
+
+</div>
+
+</div>
+
+<!-- AUDIT INFO -->
+
+<div class="card">
+
+<h2>
+Audit Information
+</h2>
+
+<p>
+Line :
+<span id="lineDisplay">
+1
+</span>
+</p>
+
+<p>
+IE :
+<span id="ieDisplay">
+-
+</span>
+</p>
+
+<p>
+Week :
+<span id="weekDisplay">
+W46
+</span>
+</p>
+
+</div>
+
+<!-- TOWER -->
+
+<div class="card">
+
+<details open>
+
+<summary>
+
+IE Tower Management
+
+<span id="towerScore">
+15 / 15
+</span>
+
+</summary>
+
+<div id="towerList">
+</div>
+
+</details>
+
+</div>
+
+<!-- STW -->
+
+<div class="card">
+
+<details>
+
+<summary>
+
+Standard Work Compliance
+
+<span id="stwScore">
+10 / 10
+</span>
+
+</summary>
+
+<div id="stwList">
+</div>
+
+</details>
+
+</div>
+
+<!-- WORKFLOW -->
+
+<div class="card">
+
+<details>
+
+<summary>
+
+Workflow & Machine Alignment
+
+<span id="workflowScore">
+20 / 20
+</span>
+
+</summary>
+
+<div id="workflowList">
+</div>
+
+</details>
+
+</div>
+
+<!-- LAYOUT -->
+
+<div class="card">
+
+<details>
+
+<summary>
+
+Layout Compliance & Workstation Control
+
+<span id="layoutScore">
+20 / 20
+</span>
+
+</summary>
+
+<div id="layoutList">
+</div>
+
+</details>
+
+</div>
+
+<!-- FLOOR -->
+
+<div class="card">
+
+<details>
+
+<summary>
+
+Floor Control
+
+<span id="floorScore">
+20 / 20
+</span>
+
+</summary>
+
+<div id="floorList">
+</div>
+
+</details>
+
+</div>
+
+<!-- WIP -->
+
+<div class="card">
+
+<details>
+
+<summary>
+
+WIP Control
+
+<span id="wipScore">
+15 / 15
+</span>
+
+</summary>
+
+<div id="wipList">
+</div>
+
+</details>
+
+</div>
+
+<!-- COMMENT -->
+
+<div class="card">
+
+<h3>Comment</h3>
+
+<textarea
+id="comment"
+class="comment-box"
+placeholder="Type comment here">
+</textarea>
+
+</div>
+
+<div style="height:150px"></div>
+
+<!-- FOOTER -->
+
+<div class="footer">
+
+<div
+class="total"
+id="total">
+
+100
+
+</div>
+
+<div
+class="rating"
+id="rating">
+
+EXCELLENT
+
+</div>
+
+<button
+class="save-btn btn-save"
+onclick="saveAudit()">
+
+SAVE AUDIT
+
+</button>
+
+<button
+class="save-btn btn-history"
+onclick="showHistory()">
+
+HISTORY
+
+</button>
+
+<button
+class="save-btn btn-report"
+onclick="generateReport()">
+
+WEEKLY REPORT
+
+</button>
+
+</div>
+
+<script src="app.js"></script>
+
+</body>
+
+</html>
