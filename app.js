@@ -30,16 +30,9 @@ const findingName = {
 
 "TW-01":"Missing Layout",
 "TW-02":"Missing OB",
-"TW-03":"Missing Yamazumi",
-"TW-04":"Missing Skill Matrix",
-"TW-05":"Missing Daily Target",
-"TW-06":"Missing Incentive",
-"TW-07":"Outdated Document",
-"TW-08":"Document Mismatch",
-"TW-09":"Daily Target Not Updated",
-"TW-10":"Incentive Not Updated",
-"TW-11":"No IE Tower",
-"TW-12":"Poor IE Tower Maintenance",
+"TW-03":"Pre-Yamazumi",
+"TW-04":"Act-Yamazumi",
+"TW-05":"Incentive",
 
 "ST-01":"No Standard Work",
 "ST-02":"Outdated Standard Work",
@@ -68,17 +61,11 @@ const findingName = {
 "FP-01":"Garments On Chair",
 "FP-02":"Garments On Floor",
 "FP-03":"Multiple Chair Violations",
-"FP-04":"Multiple Floor Violations",
-"FP-05":"Widespread Line Violation",
+"FP-04":"Use Incorrect Support Tools",
 
-"WP-01":"WIP Above Standard",
-"WP-02":"Multiple WIP Accumulation Points",
-"WP-03":"Minor Bottleneck",
-"WP-04":"Major Bottleneck",
-"WP-05":"WIP Out Of Control",
-"WP-06":"WIP Not Following Standard",
-"WP-07":"WIP Blocking Walkway",
-"WP-08":"No FIFO Control"
+"LB-01":"Update Target & Efficiency",
+"LB-02":"Line Feeding Detail",
+"LB-03":"Incentive Plan",
 
 };
 
@@ -89,18 +76,12 @@ const findingName = {
 const findings = {
 
 tower:[
-["TW-01","Missing Layout",1],
-["TW-02","Missing OB",1],
-["TW-03","Missing Yamazumi",1],
-["TW-04","Missing Skill Matrix",1],
-["TW-05","Missing Daily Target",1],
-["TW-06","Missing Incentive",1],
-["TW-07","Outdated Document",1],
-["TW-08","Document Mismatch",2],
-["TW-09","Daily Target Not Updated",1],
-["TW-10","Incentive Not Updated",1],
-["TW-11","No IE Tower",5],
-["TW-12","Poor IE Tower Maintenance",3]
+["TW-01","Missing Layout",15],
+["TW-02","Missing OB",15],
+["TW-03","Pre-Yamazumi",15],
+["TW-04","Act-Yamazumi",15],
+["TW-05","Incentive",15]
+
 ],
 
 stw:[
@@ -112,44 +93,31 @@ stw:[
 ],
 
 workflow:[
-["WF-01","Machine Misalignment",1],
-["WF-02","Cross Material Flow",2],
-["WF-03","Excess Transportation",1],
-["WF-04","Broken Workflow",2],
-["WF-05","Layout Bottleneck",3],
-["WF-06","Workflow Not Optimized",2],
-["WF-07","Wrong Feeding Direction",2],
-["WF-08","Output Not At End Of Line",2]
+["WF-01","Machine Misalignment",5],
+["WF-02","Cross Material Flow",5],
+["WF-03","Excess Transportation",5],
+["WF-04","Layout Bottleneck",5]
+
 ],
 
 layout:[
-["LY-01","Wrong Workstation Layout",1],
-["LY-02","Unauthorized Machine Relocation",2],
-["LY-03","Missing Workstation",2],
-["LY-04","Unapproved Additional Machine",3],
-["LY-05","Layout Not Following Approved Plan",5],
-["LY-06","Wrong Flow Arrangement",2],
-["LY-07","Missing Machine In Layout",2],
-["LY-08","Machine Outside Approved Layout",3]
+["LY-04","Unapproved Additional Machine",5],
+["LY-05","Layout Not Following Approved Plan",20],
+["LY-06","Wrong Flow Arrangement",5],
+["LY-08","Machine Outside Approved Layout",10]
 ],
 
 floor:[
-["FP-01","Garments On Chair",1],
-["FP-02","Garments On Floor",2],
-["FP-03","Multiple Chair Violations",3],
-["FP-04","Multiple Floor Violations",5],
-["FP-05","Widespread Line Violation",5]
+["FP-01","Garments On Chair",5],
+["FP-02","Garments On Floor",5],
+["FP-03","Multiple Chair Violations",5],
+["FP-04","Use Incorrect Support Tools",5]
 ],
 
-wip:[
-["WP-01","WIP Above Standard",1],
-["WP-02","Multiple WIP Accumulation Points",2],
-["WP-03","Minor Bottleneck",3],
-["WP-04","Major Bottleneck",5],
-["WP-05","WIP Out Of Control",5],
-["WP-06","WIP Not Following Standard",2],
-["WP-07","WIP Blocking Walkway",3],
-["WP-08","No FIFO Control",3]
+lib:[
+["LB-01","Update Target & Efficiency",5],
+["LB-02","Line Feeding Detail",5],
+["LB-03","Incentive Plan",5]
 ]
 
 };
@@ -298,12 +266,20 @@ groupName
 
 function calculateScore(){
 
+    // =========================
+    // START SCORE
+    // =========================
+
     let tower = 15;
     let stw = 10;
     let workflow = 20;
     let layout = 20;
     let floor = 20;
-    let wip = 15;
+    let lib = 15;
+
+    // =========================
+    // IE TOWER (CRITICAL)
+    // =========================
 
     if(
         document.querySelectorAll(
@@ -313,53 +289,138 @@ function calculateScore(){
         tower = 0;
     }
 
-    if(
-        document.querySelectorAll(
-            '[data-group="stw"]:checked'
-        ).length > 0
-    ){
-        stw = 0;
+    // =========================
+    // STW
+    // =========================
+
+    const stMajor =
+    document.querySelector(
+        '[data-code="ST-01"]:checked'
+    ) ||
+    document.querySelector(
+        '[data-code="ST-02"]:checked'
+    ) ||
+    document.querySelector(
+        '[data-code="ST-03"]:checked'
+    ) ||
+    document.querySelector(
+        '[data-code="ST-04"]:checked'
+    );
+
+    if(stMajor){
+
+        stw -= 8;
+
     }
 
     if(
-        document.querySelectorAll(
-            '[data-group="workflow"]:checked'
-        ).length > 0
+        document.querySelector(
+            '[data-code="ST-05"]:checked'
+        )
     ){
-        workflow = 0;
+
+        stw -= 2;
+
     }
 
+    stw = Math.max(0,stw);
+
+    // =========================
+    // WORKFLOW
+    // =========================
+
+    workflow -=
+    document.querySelectorAll(
+        '[data-group="workflow"]:checked'
+    ).length * 5;
+
+    workflow =
+    Math.max(0,workflow);
+
+    // =========================
+    // LAYOUT
+    // =========================
+
     if(
-        document.querySelectorAll(
-            '[data-group="layout"]:checked'
-        ).length > 0
+        document.querySelector(
+            '[data-code="LY-05"]:checked'
+        )
     ){
+
         layout = 0;
+
+    }
+    else{
+
+        if(
+            document.querySelector(
+                '[data-code="LY-04"]:checked'
+            )
+        ){
+            layout -= 5;
+        }
+
+        if(
+            document.querySelector(
+                '[data-code="LY-06"]:checked'
+            )
+        ){
+            layout -= 5;
+        }
+
+        if(
+            document.querySelector(
+                '[data-code="LY-08"]:checked'
+            )
+        ){
+            layout -= 10;
+        }
+
+        layout =
+        Math.max(0,layout);
+
     }
 
-    if(
-        document.querySelectorAll(
-            '[data-group="floor"]:checked'
-        ).length > 0
-    ){
-        floor = 0;
-    }
+    // =========================
+    // FLOOR
+    // =========================
 
-    if(
-        document.querySelectorAll(
-            '[data-group="wip"]:checked'
-        ).length > 0
-    ){
-        wip = 0;
-    }
+    floor -=
+    document.querySelectorAll(
+        '[data-group="floor"]:checked'
+    ).length * 5;
+
+    floor =
+    Math.max(0,floor);
+
+    // =========================
+    // LIB
+    // =========================
+
+    lib -=
+    document.querySelectorAll(
+        '[data-group="lib"]:checked'
+    ).length * 5;
+
+    lib =
+    Math.max(0,lib);
+
+    // =========================
+    // TOTAL
+    // =========================
 
     const total =
+
         tower +
         stw +
         workflow +
         layout +
         floor +
-        wip;
+        lib;
+
+    // =========================
+    // DISPLAY
+    // =========================
 
     document.getElementById(
         "towerScore"
@@ -387,14 +448,18 @@ function calculateScore(){
     `${floor} / 20`;
 
     document.getElementById(
-        "wipScore"
+        "libScore"
     ).innerText =
-    `${wip} / 15`;
+    `${lib} / 15`;
 
     document.getElementById(
         "total"
     ).innerText =
     total;
+
+    // =========================
+    // RATING
+    // =========================
 
     let rating =
     "EXCELLENT";
@@ -424,7 +489,6 @@ function calculateScore(){
     rating;
 
 }
-
 // =====================================
 // START
 // =====================================
@@ -461,9 +525,10 @@ window.onload = function(){
     );
 
     buildGroup(
-        "wipList",
-        "wip"
-    );
+    "libList",
+    "lib"
+);
+
 
     document
     .getElementById(
@@ -796,7 +861,21 @@ this.closest('tr').remove();
 function generateReport(){
 
     const audits = [];
+
     const findingCounter = {};
+
+    const criticalCodes = [
+
+        "TW-01",
+        "TW-02",
+        "TW-03",
+        "TW-04",
+        "TW-05",
+        "LY-05"
+
+    ];
+
+    const criticalCounter = {};
 
     for(let i=0;i<localStorage.length;i++){
 
@@ -823,6 +902,17 @@ function generateReport(){
                 findingCounter[code] =
                 (findingCounter[code] || 0) + 1;
 
+                if(
+                    criticalCodes.includes(
+                        code
+                    )
+                ){
+
+                    criticalCounter[code] =
+                    (criticalCounter[code] || 0) + 1;
+
+                }
+
             });
 
         }
@@ -844,9 +934,13 @@ function generateReport(){
 
     const totalScore =
     audits.reduce(
+
         (sum,item)=>
+
         sum + item.score,
+
         0
+
     );
 
     const avgScore =
@@ -882,18 +976,6 @@ function generateReport(){
 
     }
 
-    h1{
-
-        color:#002060;
-
-    }
-
-    h2{
-
-        color:#002060;
-
-    }
-
     table{
 
         width:100%;
@@ -902,8 +984,7 @@ function generateReport(){
 
     }
 
-    th,
-    td{
+    th,td{
 
         border:1px solid #DDD;
         padding:8px;
@@ -914,6 +995,12 @@ function generateReport(){
 
         background:#002060;
         color:white;
+
+    }
+
+    h1,h2,h3{
+
+        color:#002060;
 
     }
 
@@ -949,13 +1036,13 @@ function generateReport(){
 
     <p>
     Best Line :
-    ${bestLine.line}
+    Line ${bestLine.line}
     (${bestLine.score})
     </p>
 
     <p>
     Worst Line :
-    ${worstLine.line}
+    Line ${worstLine.line}
     (${worstLine.score})
     </p>
 
@@ -986,11 +1073,8 @@ function generateReport(){
         <tr>
 
         <td>${index+1}</td>
-
         <td>${item.line}</td>
-
         <td>${item.ie}</td>
-
         <td>${item.score}</td>
 
         </tr>
@@ -1052,16 +1136,165 @@ function generateReport(){
         <tr>
 
         <td>${rank++}</td>
-
         <td>${code}</td>
+        <td>${findingName[code] || ""}</td>
+        <td>${qty}</td>
+        <td>${pct}%</td>
 
-        <td>
-        ${findingName[code] || ""}
+        </tr>
+
+        `;
+
+    });
+
+    html += `
+
+    </table>
+
+    <hr>
+
+    <h3>
+    Critical Findings
+    </h3>
+
+    <table>
+
+    <tr>
+
+    <th>Code</th>
+    <th>Finding</th>
+    <th>Qty</th>
+
+    </tr>
+
+    `;
+
+    const criticalEntries =
+    Object.entries(
+        criticalCounter
+    );
+
+    if(
+        criticalEntries.length===0
+    ){
+
+        html += `
+
+        <tr>
+
+        <td colspan="3">
+        No Critical Findings
         </td>
 
-        <td>${qty}</td>
+        </tr>
 
-        <td>${pct}%</td>
+        `;
+
+    }
+    else{
+
+        criticalEntries
+        .forEach(item=>{
+
+            html += `
+
+            <tr>
+
+            <td>${item[0]}</td>
+            <td>${findingName[item[0]]}</td>
+            <td>${item[1]}</td>
+
+            </tr>
+
+            `;
+
+        });
+
+    }
+
+    html += `
+
+    </table>
+
+    <hr>
+
+    <h3>
+    Best Lines
+    </h3>
+
+    <table>
+
+    <tr>
+
+    <th>Rank</th>
+    <th>Line</th>
+    <th>IE</th>
+    <th>Score</th>
+
+    </tr>
+
+    `;
+
+    audits
+    .slice(0,3)
+    .forEach(
+        (item,index)=>{
+
+        html += `
+
+        <tr>
+
+        <td>${index+1}</td>
+        <td>${item.line}</td>
+        <td>${item.ie}</td>
+        <td>${item.score}</td>
+
+        </tr>
+
+        `;
+
+    });
+
+    html += `
+
+    </table>
+
+    <hr>
+
+    <h3>
+    Improvement Priority Lines
+    </h3>
+
+    <table>
+
+    <tr>
+
+    <th>Rank</th>
+    <th>Line</th>
+    <th>IE</th>
+    <th>Score</th>
+
+    </tr>
+
+    `;
+
+    [...audits]
+    .sort(
+        (a,b)=>
+        a.score-b.score
+    )
+    .slice(0,3)
+    .forEach(
+        (item,index)=>{
+
+        html += `
+
+        <tr>
+
+        <td>${index+1}</td>
+        <td>${item.line}</td>
+        <td>${item.ie}</td>
+        <td>${item.score}</td>
 
         </tr>
 
