@@ -43,11 +43,7 @@ const findingName = {
 "WF-01":"Machine Misalignment",
 "WF-02":"Cross Material Flow",
 "WF-03":"Excess Transportation",
-"WF-04":"Broken Workflow",
-"WF-05":"Layout Bottleneck",
-"WF-06":"Workflow Not Optimized",
-"WF-07":"Wrong Feeding Direction",
-"WF-08":"Output Not At End Of Line",
+"WF-04":"Layout Bottleneck",
 
 "LY-01":"Wrong Workstation Layout",
 "LY-02":"Unauthorized Machine Relocation",
@@ -236,23 +232,53 @@ groupName
 
         div.innerHTML =
 
-        `
-        <label>
+`
+<label>
 
-        <input
-        type="checkbox"
-        class="finding-check"
-        data-group="${groupName}"
-        data-minus="${minus}"
-        data-code="${code}">
+<input
+type="checkbox"
+class="finding-check"
+data-group="${groupName}"
+data-code="${code}"
+data-desc="${desc}"
+data-minus="${minus}">
 
-        ${code}
-        -
-        ${desc}
-        (-${minus})
+${code}
+-
+${desc}
 
-        </label>
-        `;
+</label>
+
+<div
+id="photo-${code}"
+style="
+margin-top:8px;
+display:none;
+">
+
+<button
+type="button"
+onclick="capturePhoto(
+'${code}',
+'${desc}'
+)">
+
+📷 Capture Photo
+
+</button>
+
+<span
+id="status-${code}"
+style="
+margin-left:10px;
+color:green;
+font-weight:bold;
+">
+
+</span>
+
+</div>
+`;
 
         box.appendChild(div);
 
@@ -601,6 +627,10 @@ function getSelectedFindings(){
 // SAVE AUDIT
 // =====================================
 
+// =====================================
+// SAVE AUDIT
+// =====================================
+
 function saveAudit(){
 
     const line =
@@ -620,6 +650,11 @@ function saveAudit(){
 
         week:
         week,
+
+        feeding:
+        document.getElementById(
+            "feedingLine"
+        ).checked,
 
         date:
         new Date().toLocaleDateString(),
@@ -654,16 +689,22 @@ function saveAudit(){
 
         record.id,
 
-        JSON.stringify(record)
+        JSON.stringify(
+            record
+        )
 
     );
 
     alert(
+
         `Audit Saved
 
-Line ${line}
+Line : ${line}
 
-Score ${record.score}`
+${record.feeding
+? "Status : Feeding"
+: "Score : " + record.score}`
+
     );
 
 }
@@ -763,12 +804,13 @@ function showHistory(){
     <table>
 
 <tr>
-    <th>Date</th>
-    <th>Line</th>
-    <th>IE</th>
-    <th>Score</th>
-    <th>Findings</th>
-    <th>Action</th>
+<th>Date</th>
+<th>Line</th>
+<th>IE</th>
+<th>Status</th>
+<th>Score</th>
+<th>Findings</th>
+<th>Action</th>
 </tr>
 
     `;
@@ -790,14 +832,18 @@ function showHistory(){
         </td>
 
         <td>
-        ${item.ie}
-        </td>
+${item.ie}
+</td>
 
-        <td>
-        ${item.score}
-        </td>
+<td>
+${item.feeding ? "Feeding" : "Normal"}
+</td>
 
-        <td>
+<td>
+${item.feeding ? "-" : item.score}
+</td>
+
+<td>
 ${item.findings.join(", ")}
 </td>
 
@@ -860,9 +906,17 @@ this.closest('tr').remove();
 
 function generateReport(){
 
+const findingIE = {};
+
     const audits = [];
 
-    const findingCounter = {};
+const findingCounter = {};
+
+const ieSummary = {};
+
+let feedingCount = 0;
+
+let auditedCount = 0;
 
     const criticalCodes = [
 
@@ -877,6 +931,8 @@ function generateReport(){
 
     const criticalCounter = {};
 
+const criticalLines = {};
+
     for(let i=0;i<localStorage.length;i++){
 
         const key =
@@ -888,32 +944,112 @@ function generateReport(){
             )
         ){
 
-            const item =
-            JSON.parse(
-                localStorage.getItem(
-                    key
-                )
-            );
+           const item =
+JSON.parse(
+    localStorage.getItem(
+        key
+    )
+);
 
-            audits.push(item);
+if(item.feeding){
 
-            item.findings.forEach(code=>{
+    feedingCount++;
 
-                findingCounter[code] =
-                (findingCounter[code] || 0) + 1;
+}
+else{
 
-                if(
-                    criticalCodes.includes(
-                        code
-                    )
-                ){
+    auditedCount++;
 
-                    criticalCounter[code] =
-                    (criticalCounter[code] || 0) + 1;
+    audits.push(item);
 
-                }
+if(
+    !ieSummary[item.ie]
+){
 
-            });
+    ieSummary[item.ie] = {
+
+        lines:0,
+        totalScore:0,
+        findings:{}
+
+    };
+
+}
+
+ieSummary[item.ie].lines++;
+
+    ieSummary[item.ie].totalScore +=
+    item.score;
+
+   item.findings.forEach(code=>{
+
+if(
+    !ieSummary[item.ie].findings[code]
+){
+    ieSummary[item.ie].findings[code] = 0;
+}
+
+ieSummary[item.ie].findings[code]++;
+
+    findingCounter[code] =
+    (findingCounter[code] || 0) + 1;
+
+    // IE OWNER COUNTER
+
+    if(
+        !findingIE[code]
+    ){
+
+        findingIE[code] = {};
+
+    }
+
+    if(
+        !findingIE[code][item.ie]
+    ){
+
+        findingIE[code][item.ie] = 0;
+
+    }
+
+    findingIE[code][item.ie]++;
+
+    // CRITICAL
+
+   if(
+    criticalCodes.includes(
+        code
+    )
+){
+
+    criticalCounter[code] =
+    (criticalCounter[code] || 0) + 1;
+
+    if(
+        !criticalLines[code]
+    ){
+
+        criticalLines[code] = [];
+
+    }
+
+    if(
+        !criticalLines[code]
+        .includes(item.line)
+    ){
+
+        criticalLines[code]
+        .push(item.line);
+
+    }
+
+}
+
+
+});
+
+}
+
 
         }
 
@@ -921,11 +1057,11 @@ function generateReport(){
 
     if(audits.length===0){
 
-        alert("No Audit Found");
+    alert("No Audit Found");
 
-        return;
+    return;
 
-    }
+}
 
     audits.sort(
         (a,b)=>
@@ -948,14 +1084,6 @@ function generateReport(){
         totalScore /
         audits.length
     ).toFixed(1);
-
-    const bestLine =
-    audits[0];
-
-    const worstLine =
-    audits[
-        audits.length - 1
-    ];
 
     let html = `
 
@@ -1004,6 +1132,18 @@ function generateReport(){
 
     }
 
+@media print{
+
+    @page{
+        size:A4 landscape;
+        margin:10mm;
+    }
+
+    button{
+        display:none;
+    }
+
+}
     </style>
 
     </head>
@@ -1018,6 +1158,24 @@ function generateReport(){
     Weekly Report
     </h2>
 
+<br>
+
+<button
+onclick="window.print()"
+style="
+background:#002060;
+color:white;
+border:none;
+padding:10px 20px;
+cursor:pointer;
+">
+
+📄 EXPORT WEEKLY REPORT PDF
+
+</button>
+
+<hr>
+
     <hr>
 
     <h3>
@@ -1025,87 +1183,143 @@ function generateReport(){
     </h3>
 
     <p>
-    Total Audits :
-    ${audits.length}
-    </p>
+Audited Lines :
+${auditedCount}
+</p>
 
-    <p>
-    Average Score :
-    ${avgScore}
-    </p>
+<p>
+Feeding Lines :
+${feedingCount}
+</p>
 
-    <p>
-    Best Line :
-    Line ${bestLine.line}
-    (${bestLine.score})
-    </p>
+<p>
+Average Score :
+${avgScore}
+</p>
 
-    <p>
-    Worst Line :
-    Line ${worstLine.line}
-    (${worstLine.score})
-    </p>
+<p>
+Best IE Group :
+${
+Object.entries(ieSummary)
+.sort(
+(a,b)=>
+(
+b[1].totalScore /
+b[1].lines
+)
+-
+(
+a[1].totalScore /
+a[1].lines
+)
+)[0]?.[0] || "-"
+}
+</p>
+
+<p>
+IE Below Target (&lt;90) :
+${
+Object.entries(ieSummary)
+.filter(item=>
+(
+item[1].totalScore /
+item[1].lines
+) < 90
+).length
+}
+</p>
 
     <hr>
 
     <h3>
-    Ranking
-    </h3>
+IE Ranking
+</h3>
 
-    <table>
+`;
 
-    <tr>
+html += `
 
-    <th>Rank</th>
-    <th>Line</th>
-    <th>IE</th>
-    <th>Score</th>
+<table>
 
-    </tr>
+<tr>
 
-    `;
+<th>Rank</th>
+<th>IE</th>
+<th>Audited Lines</th>
+<th>Avg Score</th>
 
-    audits.forEach(
-        (item,index)=>{
+</tr>
 
-        html += `
+`;
 
-        <tr>
+let ieRank = 1;
 
-        <td>${index+1}</td>
-        <td>${item.line}</td>
-        <td>${item.ie}</td>
-        <td>${item.score}</td>
+Object.entries(ieSummary)
 
-        </tr>
+.sort(
+(a,b)=>
+(
+b[1].totalScore /
+b[1].lines
+)
+-
+(
+a[1].totalScore /
+a[1].lines
+)
+)
 
-        `;
+.forEach(item=>{
 
-    });
+    const avg = (
+
+        item[1].totalScore /
+
+        item[1].lines
+
+    ).toFixed(1);
 
     html += `
 
-    </table>
-
-    <hr>
-
-    <h3>
-    Top Findings
-    </h3>
-
-    <table>
-
     <tr>
 
-    <th>Rank</th>
-    <th>Code</th>
-    <th>Finding</th>
-    <th>Qty</th>
-    <th>% Line</th>
+    <td>${ieRank++}</td>
+
+    <td>${item[0]}</td>
+
+    <td>${item[1].lines}</td>
+
+    <td>${avg}</td>
 
     </tr>
 
     `;
+
+});
+
+html += `
+
+</table>
+
+<hr>
+
+<h3>
+Top Findings
+</h3>
+
+<table>
+
+<tr>
+
+<th>Rank</th>
+<th>Code</th>
+<th>Finding</th>
+<th>Qty</th>
+<th>IE Owner</th>
+
+</tr>
+
+`;
 
     let rank = 1;
 
@@ -1121,15 +1335,25 @@ function generateReport(){
         const code =
         item[0];
 
-        const qty =
-        item[1];
+       const qty =
+item[1];
 
-        const pct =
-        (
-            qty /
-            audits.length *
-            100
-        ).toFixed(1);
+const ieInfo =
+Object.entries(
+    findingIE[code] || {}
+)
+.sort(
+    (a,b)=>
+    b[1]-a[1]
+)
+
+.map(item=>
+
+    `${item[0]} (${item[1]})`
+
+)
+
+.join(", ");
 
         html += `
 
@@ -1139,7 +1363,7 @@ function generateReport(){
         <td>${code}</td>
         <td>${findingName[code] || ""}</td>
         <td>${qty}</td>
-        <td>${pct}%</td>
+        <td>${ieInfo}</td>
 
         </tr>
 
@@ -1162,8 +1386,9 @@ function generateReport(){
     <tr>
 
     <th>Code</th>
-    <th>Finding</th>
-    <th>Qty</th>
+<th>Finding</th>
+<th>Qty</th>
+<th>Affected Lines</th>
 
     </tr>
 
@@ -1182,7 +1407,7 @@ function generateReport(){
 
         <tr>
 
-        <td colspan="3">
+        <td colspan="4">
         No Critical Findings
         </td>
 
@@ -1193,108 +1418,165 @@ function generateReport(){
     }
     else{
 
-        criticalEntries
-        .forEach(item=>{
+criticalEntries
+.forEach(item=>{
 
-            html += `
+    const lines =
+(
+    criticalLines[
+        item[0]
+    ] || []
+)
 
-            <tr>
+    .sort(
+        (a,b)=>a-b
+    )
 
-            <td>${item[0]}</td>
-            <td>${findingName[item[0]]}</td>
-            <td>${item[1]}</td>
+    .map(line=>
 
-            </tr>
+        "L" + line
 
-            `;
+    )
 
-        });
+    .join(", ");
+
+    html += `
+
+    <tr>
+
+    <td>${item[0]}</td>
+
+    <td>${findingName[item[0]]}</td>
+
+    <td>${item[1]}</td>
+
+    <td>${lines}</td>
+
+    </tr>
+
+    `;
+
+});
 
     }
 
     html += `
 
-    </table>
+</table>
 
-    <hr>
+<hr>
 
-    <h3>
-    Best Lines
-    </h3>
+`;
 
-    <table>
+html += `
 
-    <tr>
+<hr>
 
-    <th>Rank</th>
-    <th>Line</th>
-    <th>IE</th>
-    <th>Score</th>
+<h3>
+Improvement Priority IE
+</h3>
 
-    </tr>
+`;
 
-    `;
+Object.entries(
+    ieSummary
+)
 
-    audits
-    .slice(0,3)
-    .forEach(
-        (item,index)=>{
+.filter(item=>
 
-        html += `
+    (
+        item[1].totalScore /
+        item[1].lines
+    ) < 90
 
-        <tr>
+)
 
-        <td>${index+1}</td>
-        <td>${item.line}</td>
-        <td>${item.ie}</td>
-        <td>${item.score}</td>
+.sort(
+    (a,b)=>
 
-        </tr>
+    (
+        a[1].totalScore /
+        a[1].lines
+    )
 
-        `;
+    -
 
-    });
+    (
+        b[1].totalScore /
+        b[1].lines
+    )
+
+)
+
+.forEach(item=>{
+
+    const ieName =
+    item[0];
+
+    const avg = (
+
+        item[1].totalScore /
+
+        item[1].lines
+
+    ).toFixed(1);
 
     html += `
 
-    </table>
+    <h4>
 
-    <hr>
+    ${ieName}
 
-    <h3>
-    Improvement Priority Lines
-    </h3>
+    </h4>
+
+    <p>
+
+    Avg Score :
+    ${avg}
+
+    </p>
 
     <table>
 
     <tr>
 
     <th>Rank</th>
-    <th>Line</th>
-    <th>IE</th>
-    <th>Score</th>
+    <th>Code</th>
+    <th>Finding</th>
+    <th>Qty</th>
 
     </tr>
 
     `;
 
-    [...audits]
+    let rank = 1;
+
+    Object.entries(
+        item[1].findings
+    )
+
     .sort(
         (a,b)=>
-        a.score-b.score
+        b[1]-a[1]
     )
+
     .slice(0,3)
-    .forEach(
-        (item,index)=>{
+
+    .forEach(f=>{
 
         html += `
 
         <tr>
 
-        <td>${index+1}</td>
-        <td>${item.line}</td>
-        <td>${item.ie}</td>
-        <td>${item.score}</td>
+        <td>${rank++}</td>
+
+        <td>${f[0]}</td>
+
+        <td>
+        ${findingName[f[0]] || ""}
+        </td>
+
+        <td>${f[1]}</td>
 
         </tr>
 
@@ -1303,22 +1585,356 @@ function generateReport(){
     });
 
     html += `
-
     </table>
+    `;
 
-    </body>
+});
 
-    </html>
+html += `
+
+</body>
+
+</html>
+
+`;
+
+const reportWindow =
+window.open();
+
+reportWindow.document.write(
+    html
+);
+
+reportWindow.document.close();
+
+}
+
+// =====================================
+// EXPORT PDF
+// =====================================
+
+function exportPDF(){
+
+    const reportContent = `
+
+    <div style="font-family:Arial;padding:20px">
+
+    <h1>
+    IE AUDIT MK
+    </h1>
+
+    <h2>
+    Audit Summary
+    </h2>
+
+    <hr>
+
+    <p>
+    Line :
+    ${document.getElementById("lineSelect").value}
+    </p>
+
+    <p>
+    IE :
+    ${document.getElementById("ieOwner").innerText}
+    </p>
+
+    <p>
+    Score :
+    ${document.getElementById("total").innerText}
+    </p>
+
+    <p>
+    Rating :
+    ${document.getElementById("rating").innerText}
+    </p>
+
+    <hr>
+
+    <h3>
+    Findings
+    </h3>
+
+    <ul>
+
+    ${
+        Array.from(
+            document.querySelectorAll(
+                ".finding-check:checked"
+            )
+        )
+        .map(
+            item =>
+
+            `<li>
+            ${item.dataset.code}
+            </li>`
+        )
+        .join("")
+    }
+
+    </ul>
+
+    <hr>
+
+    <h3>
+    Comment
+    </h3>
+
+    <p>
+
+    ${
+        document.getElementById(
+            "comment"
+        ).value || "-"
+
+    }
+
+    </p>
+
+    </div>
 
     `;
 
-    const reportWindow =
-    window.open();
-
-    reportWindow.document.write(
-        html
+    const container =
+    document.createElement(
+        "div"
     );
 
-    reportWindow.document.close();
+    container.innerHTML =
+    reportContent;
+
+    html2pdf()
+
+    .set({
+
+        margin:10,
+
+        filename:
+        `IE_AUDIT_LINE_${document.getElementById("lineSelect").value}.pdf`,
+
+        image:{
+            type:"jpeg",
+            quality:1
+        },
+
+        html2canvas:{
+            scale:2
+        },
+
+        jsPDF:{
+            unit:"mm",
+            format:"a4",
+            orientation:"portrait"
+        }
+
+    })
+
+    .from(container)
+
+    .save();
+
+}
+
+// =====================================
+// EXPORT WEEKLY REPORT PDF
+// =====================================
+
+function exportWeeklyReportPDF(){
+
+    window.print();
+
+}
+
+// =====================================
+// SHOW CAMERA BUTTON
+// =====================================
+
+document.addEventListener(
+
+    "change",
+
+    function(e){
+
+        if(
+            e.target.classList.contains(
+                "finding-check"
+            )
+        ){
+
+            const code =
+            e.target.dataset.code;
+
+            const box =
+            document.getElementById(
+                "photo-" + code
+            );
+
+            if(!box) return;
+
+            box.style.display =
+
+            e.target.checked
+
+            ? "block"
+
+            : "none";
+
+        }
+
+    }
+
+);
+
+// =====================================
+// CAMERA
+// =====================================
+
+function capturePhoto(
+    code,
+    desc
+){
+
+    const input =
+    document.createElement(
+        "input"
+    );
+
+    input.type =
+    "file";
+
+    input.accept =
+    "image/*";
+
+    input.capture =
+    "environment";
+
+    input.onchange =
+    function(e){
+
+        const file =
+        e.target.files[0];
+
+        if(!file) return;
+
+        const img =
+        new Image();
+
+        img.onload =
+        function(){
+
+            const canvas =
+            document.createElement(
+                "canvas"
+            );
+
+            const ctx =
+            canvas.getContext(
+                "2d"
+            );
+
+            canvas.width =
+            img.width;
+
+            canvas.height =
+            img.height;
+
+            ctx.drawImage(
+                img,
+                0,
+                0
+            );
+
+            ctx.fillStyle =
+            "rgba(0,0,0,0.7)";
+
+            ctx.fillRect(
+
+                0,
+
+                canvas.height-180,
+
+                canvas.width,
+
+                180
+
+            );
+
+            ctx.fillStyle =
+            "white";
+
+            ctx.font =
+            "bold 42px Arial";
+
+            const line =
+            document.getElementById(
+                "lineSelect"
+            ).value;
+
+            const now =
+            new Date();
+
+            ctx.fillText(
+                "IE AUDIT MK",
+                20,
+                canvas.height-130
+            );
+
+            ctx.fillText(
+                "Line : " + line,
+                20,
+                canvas.height-90
+            );
+
+            ctx.fillText(
+                "Code : " + code,
+                20,
+                canvas.height-50
+            );
+
+            ctx.fillText(
+                desc,
+                300,
+                canvas.height-50
+            );
+
+            ctx.fillText(
+                now.toLocaleString(),
+                20,
+                canvas.height-10
+            );
+
+            const link =
+            document.createElement(
+                "a"
+            );
+
+            link.href =
+            canvas.toDataURL(
+                "image/jpeg"
+            );
+
+            link.download =
+            "IMG_" +
+            Date.now() +
+            ".jpg";
+
+            link.click();
+
+            document.getElementById(
+                "status-" + code
+            ).innerText =
+            "✅ Photo Captured";
+
+        };
+
+        img.src =
+        URL.createObjectURL(
+            file
+        );
+
+    };
+
+    input.click();
 
 }

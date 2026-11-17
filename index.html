@@ -64,6 +64,16 @@ W46
 </span>
 </p>
 
+<label class="feeding-box">
+
+<input
+type="checkbox"
+id="feedingLine">
+
+Feeding Line
+
+</label>
+
 </div>
 
 <!-- TOWER -->
@@ -202,6 +212,8 @@ Line Information Board
 
 </details>
 
+</div>
+
 <!-- COMMENT -->
 
 <div class="card">
@@ -262,10 +274,18 @@ WEEKLY REPORT
 
 </button>
 
+<button
+class="save-btn btn-report"
+onclick="exportWeeklyReportPDF()">
+
+📄 EXPORT WEEKLY REPORT PDF
+
+</button>
 </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
 <script src="app.js"></script>
 
 </body>
-
 </html>
