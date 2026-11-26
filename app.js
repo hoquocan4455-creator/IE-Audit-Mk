@@ -11,8 +11,8 @@ const lineOwner = {};
 
 for(let i=1;i<=5;i++) lineOwner[i]="Như";
 for(let i=6;i<=10;i++) lineOwner[i]="Phúc";
-for(let i=11;i<=12;i++) lineOwner[i]="Đạt";
-for(let i=13;i<=15;i++) lineOwner[i]="Thắm";
+for(let i=11;i<=13;i++) lineOwner[i]="Nhân";
+for(let i=14;i<=15;i++) lineOwner[i]="Thắm";
 for(let i=16;i<=18;i++) lineOwner[i]="Thuận";
 for(let i=19;i<=21;i++) lineOwner[i]="Viễn";
 for(let i=22;i<=23;i++) lineOwner[i]="Trâm";
@@ -627,10 +627,6 @@ function getSelectedFindings(){
 // SAVE AUDIT
 // =====================================
 
-// =====================================
-// SAVE AUDIT
-// =====================================
-
 function saveAudit(){
 
     const line =
@@ -706,6 +702,67 @@ ${record.feeding
 : "Score : " + record.score}`
 
     );
+
+// =====================================
+// RESET FORM
+// =====================================
+
+// Clear findings
+
+document
+.querySelectorAll(
+    ".finding-check"
+)
+.forEach(item=>{
+
+    item.checked = false;
+
+});
+
+// Clear comment
+
+document
+.getElementById(
+    "comment"
+)
+.value = "";
+
+// Reset Feeding
+
+document
+.getElementById(
+    "feedingLine"
+)
+.checked = false;
+
+// Hide photo buttons
+
+document
+.querySelectorAll(
+    '[id^="photo-"]'
+)
+.forEach(item=>{
+
+    item.style.display =
+    "none";
+
+});
+
+// Clear photo status
+
+document
+.querySelectorAll(
+    '[id^="status-"]'
+)
+.forEach(item=>{
+
+    item.innerText = "";
+
+});
+
+// Recalculate score
+
+calculateScore();
 
 }
 
