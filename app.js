@@ -11,8 +11,8 @@ const lineOwner = {};
 
 for(let i=1;i<=5;i++) lineOwner[i]="Như";
 for(let i=6;i<=10;i++) lineOwner[i]="Phúc";
-for(let i=11;i<=13;i++) lineOwner[i]="Nhân";
-for(let i=14;i<=15;i++) lineOwner[i]="Thắm";
+for(let i=11;i<=12;i++) lineOwner[i]="Đạt";
+for(let i=13;i<=15;i++) lineOwner[i]="Thắm";
 for(let i=16;i<=18;i++) lineOwner[i]="Thuận";
 for(let i=19;i<=21;i++) lineOwner[i]="Viễn";
 for(let i=22;i<=23;i++) lineOwner[i]="Trâm";
